@@ -1,14 +1,15 @@
 cmake_minimum_required(VERSION 3.29)
 project(gamesdl)
 set(CMAKE_CXX_STANDARD 23)
-# set(CMAKE_CXX_FLAGS "-O3")
+set(CMAKE_CXX_FLAGS "-Wall -Wextra -Wpedantic")
 set(CMAKE_CXX_COMPILER clang++)
+set(CMAKE_EXE_LINKER_FLAGS "-Wl,--gc-sections")
+set(CMAKE_INTERPROCEDURAL_OPTIMIZATION TRUE)
 
-
-find_package(raylib REQUIRED)
-find_package(imgui REQUIRED)
+# find_package(raylib REQUIRED)
+# find_package(imgui REQUIRED)
 
 add_executable(main main.cpp rlImGui/rlImGui.cpp)
-target_compile_options(main PRIVATE -Wall -Wextra -Wpedantic)
+add_executable(foo foo.cpp)
 target_link_libraries(main raylib)
 target_link_libraries(main imgui)
