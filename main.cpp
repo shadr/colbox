@@ -105,7 +105,7 @@ int main() {
 
   flecs::world world;
   world.set_threads(8);
-  for (int i = 0; i < 500; i++) {
+  for (int i = 0; i < 10; i++) {
     auto e = world.entity();
     e.set(PositionComponent()).set(VelocityComponent()).set(ColorComponent());
   }
@@ -145,21 +145,18 @@ int main() {
 
   world.system<PositionComponent, VelocityComponent>("SquareCollision")
       .kind(flecs::OnValidate)
-      .multi_threaded()
       .write<VelocityComponent>()
       .read<PositionComponent>()
       .run([](flecs::iter &it) {
         while (it.next()) {
           auto p = it.field<PositionComponent>(0);
           auto v = it.field<VelocityComponent>(1);
-          for (auto i : it) {
+          auto count = it.count();
+          for (unsigned long i = 0; i < count; i++) {
             auto &p1 = p[i];
             auto &v1 = v[i];
             auto &r1 = reinterpret_cast<Rectangle &>(p1);
-            for (auto j : it) {
-              if (i == j) {
-                continue;
-              }
+            for (unsigned long j = i + 1; j < count; j++) {
               auto &p2 = p[j];
               auto &v2 = v[j];
               auto &r2 = reinterpret_cast<Rectangle &>(p2);
@@ -191,12 +188,12 @@ int main() {
         }
       });
 
-  // world.system<PositionComponent, ColorComponent>("DrawSystem")
-  //     .read<PositionComponent, ColorComponent>()
-  //     .each([](PositionComponent &p, ColorComponent &c) {
-  //       Color color = ColorFromHSV(c.hue, 1.0, 1.0);
-  //       DrawRectangle(p.x, p.y, p.width, p.height, color);
-  //     });
+  world.system<PositionComponent, ColorComponent>("DrawSystem")
+      .read<PositionComponent, ColorComponent>()
+      .each([](PositionComponent &p, ColorComponent &c) {
+        Color color = ColorFromHSV(c.hue, 1.0, 1.0);
+        DrawRectangle(p.x, p.y, p.width, p.height, color);
+      });
 
   while (!WindowShouldClose()) {
     BeginDrawing();
