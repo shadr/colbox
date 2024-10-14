@@ -20,6 +20,7 @@ struct Son : Mom, Dad {
 };
 
 int main() {
+  std::cout << 55 << std::endl;
   // void (Son::*pf)() = &Son::h;
   // auto longptr = reinterpret_cast<long long &>(pf);
   // std::cout << longptr << std::endl;

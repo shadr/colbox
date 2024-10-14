@@ -1,3 +1,0 @@
-[submodule "libs/flecs"]
-	path = libs/flecs
-	url = https://github.com/SanderMertens/flecs
