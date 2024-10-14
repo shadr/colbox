@@ -32,6 +32,7 @@
             raylib
             imgui
             capstone
+            entt
           ];
         };
       }
