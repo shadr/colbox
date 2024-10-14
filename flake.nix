@@ -28,10 +28,10 @@
             llvmPackages_latest.llvm
             llvmPackages_latest.bintools
             cmake
-            SDL2
             raylib
             imgui
             capstone
+            glm
           ];
         };
       }
