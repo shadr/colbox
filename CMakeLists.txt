@@ -9,7 +9,10 @@ set(CMAKE_EXPORT_COMPILE_COMMANDS TRUE)
 
 include_directories(libs)
 
+add_subdirectory(libs/flecs)
+
 add_executable(main main.cpp libs/rlImGui/rlImGui.cpp)
 target_link_libraries(main raylib)
 target_link_libraries(main imgui)
+target_link_libraries(main flecs)
 # target_link_libraries(main capstone)

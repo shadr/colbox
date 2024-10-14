@@ -1,8 +1,9 @@
+#define flecs_EXPORTS
+
 #include "rlImGui/rlImGui.h"
 #include <chrono>
-#include <format>
+#include <flecs.h>
 #include <imgui.h>
-#include <iostream>
 #include <random>
 #include <raylib.h>
 
@@ -11,18 +12,6 @@ auto rng =
 
 std::uniform_real_distribution<float> dis_position(-300.0, 300.0);
 std::uniform_real_distribution<float> dis_size(50.0, 150.0);
-
-struct UpdateComponent {
-  virtual void update() = 0;
-};
-
-struct MovementSystem : UpdateComponent {
-  void update() override {}
-};
-
-struct ColorChangeSystem : UpdateComponent {
-  void update() override { std::format("{}", 1); }
-};
 
 struct Square {
   float x;
@@ -84,6 +73,8 @@ struct Square {
 int main() {
   const int screenWidth = 1280;
   const int screenHeight = 720;
+
+  flecs::world world;
 
   InitWindow(screenWidth, screenHeight, "raylibapp");
   SetTargetFPS(60);
