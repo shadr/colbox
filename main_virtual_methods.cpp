@@ -20,8 +20,15 @@ struct Son : Mom, Dad {
 };
 
 int main() {
+  // void (Son::*pf)() = &Son::h;
+  // auto longptr = reinterpret_cast<long long &>(pf);
+  // std::cout << longptr << std::endl;
+  // auto first = *longptr;
+  // auto second = *(longptr + 1);
+  // std::cout << first << "  " << second << std::endl;
   Son s;
   print_object(s);
+  std::cout << sizeof(s) << std::endl;
   std::cout << std::endl;
   Son *ps = &s;
   auto vtable_ptr = reinterpret_cast<void ***&>(ps);

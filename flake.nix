@@ -31,6 +31,7 @@
             SDL2
             raylib
             imgui
+            capstone
           ];
         };
       }
