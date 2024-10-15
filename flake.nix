@@ -32,6 +32,7 @@
             imgui
             capstone
             glm
+            boost
           ];
         };
       }

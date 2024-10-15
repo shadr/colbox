@@ -1,17 +1,19 @@
-#include "rlImGui/rlImGui.h"
 #include <chrono>
+#include <numbers>
+#include <random>
+
 #include <flecs.h>
 #include <glm/glm.hpp>
 #include <imgui.h>
-#include <numbers>
-#include <random>
 #include <raylib.h>
+
+#include "rlImGui/rlImGui.h"
 
 auto rng =
     std::mt19937(std::chrono::steady_clock::now().time_since_epoch().count());
 
 std::uniform_real_distribution<float> dis_position(-300.0, 300.0);
-std::uniform_real_distribution<float> dis_size(20.0, 40.0);
+std::uniform_real_distribution<float> dis_size(4.0, 4.0);
 std::uniform_real_distribution<float> dis_vel_angle(0.0, 2 * std::numbers::pi);
 std::uniform_real_distribution<float> dis_start_color(0.0, 360.0);
 
@@ -89,8 +91,7 @@ int main() {
 
   world.system<PositionComponent, VelocityComponent>("SquareCollision")
       .kind(flecs::OnValidate)
-      .write<VelocityComponent>()
-      .read<PositionComponent>()
+      .write<PositionComponent, VelocityComponent>()
       .run([](flecs::iter &it) {
         while (it.next()) {
           auto p = it.field<PositionComponent>(0);
@@ -119,15 +120,19 @@ int main() {
         }
       });
 
-  world.system<ColorComponent>("ColorChange")
+  world.system<ColorComponent, const VelocityComponent>("ColorChange")
       .multi_threaded()
       .kind(flecs::OnUpdate)
       .write<ColorComponent>()
-      .each([](flecs::iter &it, size_t, ColorComponent &c) {
-        c.hue += 36.0 * it.delta_time();
-        if (c.hue > 360.0) {
-          c.hue = 0.0;
-        }
+      .read<VelocityComponent>()
+      .each([](ColorComponent &c, const VelocityComponent &v) {
+        float rad = glm::atan(v.vel.y, v.vel.x) + std::numbers::pi;
+        float degrees = glm::degrees(rad);
+        c.hue = degrees;
+        // c.hue += 18.0 * it.delta_time();
+        // if (c.hue > 360.0) {
+        //   c.hue = 0.0;
+        // }
       });
 
   world.system<PositionComponent, ColorComponent>("DrawSystem")
