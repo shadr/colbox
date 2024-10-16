@@ -3,7 +3,7 @@ cmake_minimum_required(VERSION 3.29)
 project(gamesdl)
 
 set(CMAKE_CXX_STANDARD 20)
-set(CMAKE_CXX_FLAGS "-Wall -Wextra -Wpedantic")
+set(CMAKE_CXX_FLAGS "-O3 -Wall -Wextra -Wpedantic")
 set(CMAKE_CXX_COMPILER clang++)
 set(CMAKE_EXPORT_COMPILE_COMMANDS TRUE)
 # set(CMAKE_EXE_LINKER_FLAGS "-Wl,--gc-sections")

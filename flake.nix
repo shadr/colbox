@@ -34,6 +34,7 @@
             capstone
             entt
             glm
+            boost
           ];
         };
       }

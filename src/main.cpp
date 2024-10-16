@@ -4,12 +4,12 @@
 #include <entt/entt.hpp>
 #include <glm/glm.hpp>
 #include <imgui.h>
-#include <iostream>
 #include <numbers>
 #include <random>
 #include <raylib.h>
 
-#include "Quadtree.h"
+#include <boost/geometry.hpp>
+#include <boost/geometry/index/rtree.hpp>
 
 auto rng =
     std::mt19937(std::chrono::steady_clock::now().time_since_epoch().count());
@@ -18,6 +18,17 @@ std::uniform_real_distribution<float> dis_position(-300.0, 300.0);
 std::uniform_real_distribution<float> dis_size(2.0, 4.0);
 std::uniform_real_distribution<float> dis_vel_angle(0.0, 2 * std::numbers::pi);
 std::uniform_real_distribution<float> dis_start_color(0.0, 360.0);
+
+namespace bg = boost::geometry;
+namespace bgi = boost::geometry::index;
+
+typedef bg::model::point<float, 2, bg::cs::cartesian> point;
+typedef bg::model::box<point> box;
+
+typedef std::pair<box, entt::entity> rtree_value;
+typedef bgi::rtree<rtree_value, bgi::quadratic<16>> rtree;
+
+rtree tree;
 
 struct PositionComponent {
   glm::vec2 pos;
@@ -33,7 +44,17 @@ struct PositionComponent {
     return Rectangle(pos.x - radius, pos.y - radius, 2.0f * radius,
                      2.0f * radius);
   }
+
+  box boost_box() {
+    return box(point(pos.x - radius, pos.y - radius),
+               point(pos.x + radius, pos.y + radius));
+  }
 };
+
+std::ostream &operator<<(std::ostream &out, PositionComponent &p) {
+  out << p.pos.x << " " << p.pos.y << " " << p.radius;
+  return out;
+}
 
 struct VelocityComponent {
   glm::vec2 vel;
@@ -52,9 +73,14 @@ struct ColorComponent {
 void move_system(entt::registry &reg, float dt) {
   const auto view = reg.view<PositionComponent, const VelocityComponent>();
 
-  view.each([dt](PositionComponent &p, const VelocityComponent &v) {
-    p.pos += v.vel * dt;
-  });
+  tree.clear();
+
+  view.each(
+      [dt](entt::entity e, PositionComponent &p, const VelocityComponent &v) {
+        p.pos += v.vel * dt;
+        box b = p.boost_box();
+        tree.insert(std::pair(b, e));
+      });
 }
 
 void color_system(entt::registry &reg, float dt) {
@@ -100,38 +126,31 @@ void wall_collision_system(entt::registry &reg) {
 
 void circle_collision_system(entt::registry &reg) {
   const auto view = reg.view<PositionComponent, VelocityComponent>();
-  auto getBox = [](std::pair<Rectangle, entt::entity> pair) {
-    return quadtree::Box<float>(pair.first.x, pair.first.y, pair.first.width,
-                                pair.first.height);
-  };
-  quadtree::Quadtree tree =
-      quadtree::Quadtree<std::pair<Rectangle, entt::entity>, decltype(getBox)>(
-          quadtree::Box<float>(-16.0f, -16.0f, GetScreenWidth() + 32.0f,
-                               GetScreenHeight() + 32.0f));
-  for (auto e : view) {
-    auto &p = view.get<PositionComponent>(e);
-    tree.add(std::pair(p.rect(), e));
-  }
-  auto intersections = tree.findAllIntersections();
-  for (auto intersection : intersections) {
-    auto &e1 = intersection.first.second;
-    auto &e2 = intersection.second.second;
+  std::vector<std::pair<box, entt::entity>> intersections;
+  for (auto e1 : view) {
     auto &p1 = view.get<PositionComponent>(e1);
     auto &v1 = view.get<VelocityComponent>(e1);
-    auto &p2 = view.get<PositionComponent>(e2);
-    auto &v2 = view.get<VelocityComponent>(e2);
+    box query_box = p1.boost_box();
+    intersections.clear();
+    tree.query(bgi::intersects(query_box), std::back_inserter(intersections));
+    for (auto &[_, e2] : intersections) {
+      if (e1 == e2) {
+        continue;
+      }
+      auto &p2 = view.get<PositionComponent>(e2);
+      auto &v2 = view.get<VelocityComponent>(e2);
+      float distance = glm::distance(p1.pos, p2.pos);
+      bool collide = distance <= p1.radius + p2.radius;
 
-    float distance = glm::distance(p1.pos, p2.pos);
-    bool collide = distance <= p1.radius + p2.radius;
-
-    if (collide) {
-      float overlap_length = distance - p1.radius - p2.radius;
-      glm::vec2 n = glm::normalize(p2.pos - p1.pos);
-      p1.pos += n * overlap_length / 2.0f;
-      p2.pos -= n * overlap_length / 2.0f;
-      float p = glm::dot(v1.vel, n) - glm::dot(v2.vel, n);
-      v1.vel = v1.vel - p * n;
-      v2.vel = v2.vel + p * n;
+      if (collide) {
+        float overlap_length = distance - p1.radius - p2.radius;
+        glm::vec2 n = glm::normalize(p2.pos - p1.pos);
+        p1.pos += n * overlap_length / 2.0f;
+        p2.pos -= n * overlap_length / 2.0f;
+        float p = glm::dot(v1.vel, n) - glm::dot(v2.vel, n);
+        v1.vel = v1.vel - p * n;
+        v2.vel = v2.vel + p * n;
+      }
     }
   }
 }
