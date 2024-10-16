@@ -2,8 +2,8 @@
 #include <chrono>
 #include <entt/entity/fwd.hpp>
 #include <entt/entt.hpp>
+#include <glm/glm.hpp>
 #include <imgui.h>
-#include <iostream>
 #include <numbers>
 #include <random>
 #include <raylib.h>
@@ -12,26 +12,27 @@ auto rng =
     std::mt19937(std::chrono::steady_clock::now().time_since_epoch().count());
 
 std::uniform_real_distribution<float> dis_position(-300.0, 300.0);
-std::uniform_real_distribution<float> dis_size(8.0, 16.0);
+std::uniform_real_distribution<float> dis_size(4.0, 8.0);
 std::uniform_real_distribution<float> dis_vel_angle(0.0, 2 * std::numbers::pi);
 std::uniform_real_distribution<float> dis_start_color(0.0, 360.0);
 
 struct PositionComponent {
-  float x, y, radius;
+  glm::vec2 pos;
+  float radius;
 
   PositionComponent()
-      : x(static_cast<float>(GetScreenWidth()) / 2 + dis_position(rng)),
-        y(static_cast<float>(GetScreenHeight()) / 2 + dis_position(rng)),
+      : pos(glm::vec2(
+            static_cast<float>(GetScreenWidth()) / 2 + dis_position(rng),
+            static_cast<float>(GetScreenHeight()) / 2 + dis_position(rng))),
         radius(dis_size(rng)) {}
 };
 
 struct VelocityComponent {
-  float x;
-  float y;
+  glm::vec2 vel;
 
   VelocityComponent()
-      : x(std::cos(dis_vel_angle(rng)) * 150.0),
-        y(std::sin(dis_vel_angle(rng)) * 150.0) {}
+      : vel(glm::vec2(std::cos(dis_vel_angle(rng)),
+                      std::sin(dis_vel_angle(rng)) * 150.)) {}
 };
 
 struct ColorComponent {
@@ -43,8 +44,7 @@ void move_system(entt::registry &reg, float dt) {
   const auto view = reg.view<PositionComponent, const VelocityComponent>();
 
   view.each([dt](PositionComponent &p, const VelocityComponent &v) {
-    p.x += v.x * dt;
-    p.y += v.y * dt;
+    p.pos += v.vel * dt;
   });
 }
 
@@ -62,7 +62,7 @@ void draw_system(entt::registry &reg) {
   const auto view = reg.view<const PositionComponent, const ColorComponent>();
   view.each([](const PositionComponent &p, const ColorComponent &c) {
     Color color = ColorFromHSV(c.hue, 1.0, 1.0);
-    DrawCircle(p.x, p.y, p.radius, color);
+    DrawCircle(p.pos.x, p.pos.y, p.radius, color);
   });
 }
 
@@ -72,21 +72,48 @@ void wall_collision_system(entt::registry &reg) {
   const auto screen_height = GetScreenHeight();
   view.each([screen_width, screen_height](PositionComponent &p,
                                           VelocityComponent &v) {
-    if (p.x - p.radius < 0) {
-      p.x = p.radius;
-      v.x *= -1;
-    } else if (p.x + p.radius > GetScreenWidth()) {
-      p.x = screen_width - p.radius;
-      v.x *= -1;
+    if (p.pos.x - p.radius < 0) {
+      p.pos.x = p.radius;
+      v.vel.x *= -1;
+    } else if (p.pos.x + p.radius > GetScreenWidth()) {
+      p.pos.x = screen_width - p.radius;
+      v.vel.x *= -1;
     }
-    if (p.y - p.radius < 0) {
-      p.y = p.radius;
-      v.y *= -1;
-    } else if (p.y + p.radius > GetScreenHeight()) {
-      p.y = screen_height - p.radius;
-      v.y *= -1;
+    if (p.pos.y - p.radius < 0) {
+      p.pos.y = p.radius;
+      v.vel.y *= -1;
+    } else if (p.pos.y + p.radius > GetScreenHeight()) {
+      p.pos.y = screen_height - p.radius;
+      v.vel.y *= -1;
     }
   });
+}
+
+void circle_collision_system(entt::registry &reg) {
+  const auto view = reg.view<PositionComponent, VelocityComponent>();
+  for (auto e1 : view) {
+    auto &p1 = view.get<PositionComponent>(e1);
+    auto &v1 = view.get<VelocityComponent>(e1);
+    for (auto e2 : view) {
+      if (e1 == e2) {
+        continue;
+      }
+      auto &p2 = view.get<PositionComponent>(e2);
+      auto &v2 = view.get<VelocityComponent>(e2);
+      float distance = glm::distance(p1.pos, p2.pos);
+      bool collide = distance <= p1.radius + p2.radius;
+
+      if (collide) {
+        float overlap_length = distance - p1.radius - p2.radius;
+        glm::vec2 n = glm::normalize(p2.pos - p1.pos);
+        p1.pos += n * overlap_length / 2.0f;
+        p2.pos -= n * overlap_length / 2.0f;
+        float p = glm::dot(v1.vel, n) - glm::dot(v2.vel, n);
+        v1.vel = v1.vel - p * n;
+        v2.vel = v2.vel + p * n;
+      }
+    }
+  }
 }
 
 int main() {
@@ -105,43 +132,6 @@ int main() {
     registry.emplace<ColorComponent>(entity);
   }
 
-  // world.system<PositionComponent, VelocityComponent>("SquareCollision")
-  //     .kind(flecs::OnValidate)
-  //     .multi_threaded()
-  //     .write<VelocityComponent>()
-  //     .read<PositionComponent>()
-  //     .run([](flecs::iter &it) {
-  //       while (it.next()) {
-  //         auto p = it.field<PositionComponent>(0);
-  //         auto v = it.field<VelocityComponent>(1);
-  //         for (auto i : it) {
-  //           auto &p1 = p[i];
-  //           auto &v1 = v[i];
-  //           auto &r1 = reinterpret_cast<Rectangle &>(p1);
-  //           for (auto j : it) {
-  //             if (i == j) {
-  //               continue;
-  //             }
-  //             auto &p2 = p[j];
-  //             auto &v2 = v[j];
-  //             auto &r2 = reinterpret_cast<Rectangle &>(p2);
-  //             bool collide = CheckCollisionRecs(r1, r2);
-  //
-  //             if (collide) {
-  //               auto r = GetCollisionRec(r1, r2);
-  //               if (r.width > r.height) {
-  //                 v1.y *= -1;
-  //                 v2.y *= -1;
-  //               } else {
-  //                 v1.x *= -1;
-  //                 v2.x *= -1;
-  //               }
-  //             }
-  //           }
-  //         }
-  //       }
-  //     });
-
   while (!WindowShouldClose()) {
     BeginDrawing();
     ClearBackground(Color{16, 16, 16, 255});
@@ -152,6 +142,7 @@ int main() {
     color_system(registry, dt);
     draw_system(registry);
     wall_collision_system(registry);
+    circle_collision_system(registry);
 
     rlImGuiBegin();
     auto b = ImGui::Button("click me");

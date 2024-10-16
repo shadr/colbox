@@ -33,6 +33,7 @@
             imgui
             capstone
             entt
+            glm
           ];
         };
       }
