@@ -1,13 +1,6 @@
-#include "rlImGui/rlImGui.h"
 #include <chrono>
-#include <glm/geometric.hpp>
-#include <glm/vec2.hpp>
-#include <imgui.h>
 #include <numbers>
 #include <random>
-#include <raylib.h>
-
-#include <box2d/box2d.h>
 
 #include "rtree.hpp"
 

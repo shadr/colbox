@@ -1,4 +1,4 @@
-/CMakeFiles
+CMakeFiles
 CMakeCache.txt
 cmake_install.cmake
 Makefile
@@ -7,3 +7,4 @@ main
 compile_commands.json
 imgui.ini
 _deps
+libs/**/*.a
