@@ -1,15 +1,15 @@
 #include "rlImGui/rlImGui.h"
 #include <chrono>
-#include <entt/entity/fwd.hpp>
-#include <entt/entt.hpp>
-#include <glm/glm.hpp>
+#include <glm/geometric.hpp>
+#include <glm/vec2.hpp>
 #include <imgui.h>
 #include <numbers>
 #include <random>
 #include <raylib.h>
 
-#include <boost/geometry.hpp>
-#include <boost/geometry/index/rtree.hpp>
+#include <box2d/box2d.h>
+
+#include "rtree.hpp"
 
 auto rng =
     std::mt19937(std::chrono::steady_clock::now().time_since_epoch().count());
@@ -18,15 +18,6 @@ std::uniform_real_distribution<float> dis_position(-300.0, 300.0);
 std::uniform_real_distribution<float> dis_size(2.0, 4.0);
 std::uniform_real_distribution<float> dis_vel_angle(0.0, 2 * std::numbers::pi);
 std::uniform_real_distribution<float> dis_start_color(0.0, 360.0);
-
-namespace bg = boost::geometry;
-namespace bgi = boost::geometry::index;
-
-typedef bg::model::point<float, 2, bg::cs::cartesian> point;
-typedef bg::model::box<point> box;
-
-typedef std::pair<box, entt::entity> rtree_value;
-typedef bgi::rtree<rtree_value, bgi::quadratic<16>> rtree;
 
 rtree tree;
 
@@ -109,17 +100,17 @@ void wall_collision_system(entt::registry &reg) {
                                           VelocityComponent &v) {
     if (p.pos.x - p.radius < 0) {
       p.pos.x = p.radius;
-      v.vel.x *= -1;
+      v.vel.x *= -1.0;
     } else if (p.pos.x + p.radius > GetScreenWidth()) {
       p.pos.x = screen_width - p.radius;
-      v.vel.x *= -1;
+      v.vel.x *= -1.0;
     }
     if (p.pos.y - p.radius < 0) {
       p.pos.y = p.radius;
-      v.vel.y *= -1;
+      v.vel.y *= -1.0;
     } else if (p.pos.y + p.radius > GetScreenHeight()) {
       p.pos.y = screen_height - p.radius;
-      v.vel.y *= -1;
+      v.vel.y *= -1.0;
     }
   });
 }
@@ -155,6 +146,49 @@ void circle_collision_system(entt::registry &reg) {
   }
 }
 
+void mouse_interaction_system(entt::registry &reg, float dt) {
+  const float force_radius = 300.0;
+  float force_direction = 0.0f;
+
+  if (IsMouseButtonDown(MOUSE_BUTTON_LEFT)) {
+    force_direction += 1.0f;
+  }
+  if (IsMouseButtonDown(MOUSE_BUTTON_RIGHT)) {
+    force_direction -= 1.0f;
+  }
+  if (force_direction != 0.0f) {
+    const auto view = reg.view<PositionComponent, VelocityComponent>();
+    auto mouse_pos = GetMousePosition();
+    DrawCircleLines(mouse_pos.x, mouse_pos.y, force_radius, RAYWHITE);
+    box query_box =
+        box(point(mouse_pos.x - force_radius, mouse_pos.y - force_radius),
+            point(mouse_pos.x + force_radius, mouse_pos.y + force_radius));
+    std::vector<rtree_value> vec;
+    tree.query(bgi::intersects(query_box), std::back_inserter(vec));
+    for (auto &[_, e] : vec) {
+      auto &p = view.get<PositionComponent>(e);
+      auto &v = view.get<VelocityComponent>(e);
+
+      glm::vec2 mpos = glm::vec2(mouse_pos.x, mouse_pos.y);
+      float distance = glm::distance(p.pos, mpos);
+      bool collide = distance <= p.radius + force_radius;
+
+      if (collide) {
+        glm::vec2 direction = glm::normalize(p.pos - mpos);
+        float force = glm::mix(300.0f, 600.0f, distance / force_radius);
+        v.vel += direction * force_direction * force * dt;
+      }
+    }
+  }
+}
+
+float sum_velocities(entt::registry &reg) {
+  const auto view = reg.view<VelocityComponent>();
+  float sum = 0.0f;
+  view.each([&sum](VelocityComponent &v) { sum += glm::length(v.vel); });
+  return sum;
+}
+
 int main() {
   const int screenWidth = 1280;
   const int screenHeight = 720;
@@ -179,16 +213,20 @@ int main() {
     auto dt = GetFrameTime();
 
     move_system(registry, dt);
+    mouse_interaction_system(registry, dt);
     color_system(registry, dt);
     draw_system(registry);
     wall_collision_system(registry);
     circle_collision_system(registry);
+
+    float vel_sum = sum_velocities(registry);
 
     rlImGuiBegin();
     auto b = ImGui::Button("click me");
 
     ImGui::LabelText("", "Entities: %zu",
                      registry.view<entt::entity>().size_hint());
+    ImGui::LabelText("", "Total velocity: %f", vel_sum);
     if (b) {
       for (int i = 0; i < 500; i++) {
         const auto entity = registry.create();
