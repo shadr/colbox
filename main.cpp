@@ -12,17 +12,17 @@ auto rng =
     std::mt19937(std::chrono::steady_clock::now().time_since_epoch().count());
 
 std::uniform_real_distribution<float> dis_position(-300.0, 300.0);
-std::uniform_real_distribution<float> dis_size(50.0, 150.0);
+std::uniform_real_distribution<float> dis_size(8.0, 16.0);
 std::uniform_real_distribution<float> dis_vel_angle(0.0, 2 * std::numbers::pi);
 std::uniform_real_distribution<float> dis_start_color(0.0, 360.0);
 
 struct PositionComponent {
-  float x, y, width, height;
+  float x, y, radius;
 
   PositionComponent()
       : x(static_cast<float>(GetScreenWidth()) / 2 + dis_position(rng)),
         y(static_cast<float>(GetScreenHeight()) / 2 + dis_position(rng)),
-        width(dis_size(rng)), height(width) {}
+        radius(dis_size(rng)) {}
 };
 
 struct VelocityComponent {
@@ -62,7 +62,7 @@ void draw_system(entt::registry &reg) {
   const auto view = reg.view<const PositionComponent, const ColorComponent>();
   view.each([](const PositionComponent &p, const ColorComponent &c) {
     Color color = ColorFromHSV(c.hue, 1.0, 1.0);
-    DrawRectangle(p.x, p.y, p.width, p.height, color);
+    DrawCircle(p.x, p.y, p.radius, color);
   });
 }
 
@@ -72,18 +72,18 @@ void wall_collision_system(entt::registry &reg) {
   const auto screen_height = GetScreenHeight();
   view.each([screen_width, screen_height](PositionComponent &p,
                                           VelocityComponent &v) {
-    if (p.x < 0) {
-      p.x = 0;
+    if (p.x - p.radius < 0) {
+      p.x = p.radius;
       v.x *= -1;
-    } else if (p.x + p.width > GetScreenWidth()) {
-      p.x = screen_width - p.width;
+    } else if (p.x + p.radius > GetScreenWidth()) {
+      p.x = screen_width - p.radius;
       v.x *= -1;
     }
-    if (p.y < 0) {
-      p.y = 0;
+    if (p.y - p.radius < 0) {
+      p.y = p.radius;
       v.y *= -1;
-    } else if (p.y + p.height > GetScreenHeight()) {
-      p.y = screen_height - p.height;
+    } else if (p.y + p.radius > GetScreenHeight()) {
+      p.y = screen_height - p.radius;
       v.y *= -1;
     }
   });
