@@ -1,7 +1,6 @@
 #include "rlImGui/rlImGui.h"
 #include <boost/geometry.hpp>
 #include <boost/geometry/index/rtree.hpp>
-#include <box2d/box2d.h>
 #include <entt/entt.hpp>
 #include <glm/glm.hpp>
 #include <imgui.h>

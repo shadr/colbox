@@ -33,7 +33,6 @@
             entt
             glm
             boost
-            box2d
           ];
         };
       }
