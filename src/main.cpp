@@ -8,7 +8,7 @@ auto rng =
     std::mt19937(std::chrono::steady_clock::now().time_since_epoch().count());
 
 std::uniform_real_distribution<float> dis_position(-300.0, 300.0);
-std::uniform_real_distribution<float> dis_size(2.0, 4.0);
+std::uniform_real_distribution<float> dis_size(2.0, 2.0);
 std::uniform_real_distribution<float> dis_vel_angle(0.0, 2 * std::numbers::pi);
 std::uniform_real_distribution<float> dis_start_color(0.0, 360.0);
 
@@ -51,7 +51,7 @@ struct OverlapContext {
 };
 
 bool overlapCallback(b2ShapeId shapeId, void *ctxptr) {
-  OverlapContext context = *(OverlapContext *)ctxptr;
+  OverlapContext context = *reinterpret_cast<OverlapContext *>(ctxptr);
   b2BodyId bodyId = b2Shape_GetBody(shapeId);
   auto position = b2Body_GetPosition(bodyId);
   auto distance_squared = b2DistanceSquared(position, context.origin);
@@ -109,7 +109,6 @@ int main() {
 
   auto physicsDef = b2DefaultWorldDef();
   physicsDef.gravity = b2Vec2{0.0f, 9.81};
-  physicsDef.enableSleep = false;
   physicsId = b2CreateWorld(&physicsDef);
 
   entt::registry registry;
@@ -136,6 +135,7 @@ int main() {
     auto bodyDef = b2DefaultBodyDef();
     bodyDef.type = b2_dynamicBody;
     bodyDef.gravityScale = 1.0;
+    bodyDef.linearDamping = 0.1f;
     bodyDef.position =
         b2Vec2{static_cast<float>(GetScreenWidth()) / 2 + dis_position(rng),
                static_cast<float>(GetScreenHeight()) / 2 + dis_position(rng)};
@@ -148,7 +148,7 @@ int main() {
     dynamicCircle.radius = dis_size(rng);
     auto shapeDef = b2DefaultShapeDef();
     shapeDef.density = 1.0f;
-    shapeDef.friction = 0.0f;
+    shapeDef.friction = 1.0f;
     shapeDef.restitution = 0.0f;
     b2CreateCircleShape(bodyId, &shapeDef, &dynamicCircle);
     registry.emplace<PhysicsComponent>(entity, bodyId, dynamicCircle.radius);
@@ -164,27 +164,41 @@ int main() {
 
     auto dt = GetFrameTime();
 
-    // auto now = std::chrono::steady_clock().now().time_since_epoch();
+    auto now = std::chrono::steady_clock().now().time_since_epoch();
     b2World_Step(physicsId, dt, 4);
-    // auto elapsed = std::chrono::steady_clock().now().time_since_epoch() -
-    // now; std::cout << elapsed << std::endl;
+    auto physics_step_time =
+        std::chrono::steady_clock().now().time_since_epoch() - now;
 
     remove_escaped_circles(registry);
 
     if (!ImGui::GetIO().WantCaptureMouse)
       mouse_interaction_system();
 
+    now = std::chrono::steady_clock().now().time_since_epoch();
     color_system(registry, dt);
+    auto color_system_time =
+        std::chrono::steady_clock().now().time_since_epoch() - now;
+    now = std::chrono::steady_clock().now().time_since_epoch();
     draw_system(registry);
+    auto draw_system_time =
+        std::chrono::steady_clock().now().time_since_epoch() - now;
 
     auto counters = b2World_GetCounters(physicsId);
 
     rlImGuiBegin();
     auto b = ImGui::Button("click me");
 
-    ImGui::LabelText("", "Entities: %zu",
-                     registry.view<entt::entity>().size_hint());
-    ImGui::LabelText("", "Physics bodies: %i", counters.bodyCount);
+    ImGui::Text("Entities: %zu", registry.view<entt::entity>().size_hint());
+
+    ImGui::Text("Physics bodies: %i", counters.bodyCount);
+    ImGui::Text("Delta time: %f ms", dt * 1000.0f);
+    ImGui::Text("Physics time: %f ms",
+                static_cast<float>(physics_step_time.count()) / 1000000.0f);
+    ImGui::Text("Color time: %f ms",
+                static_cast<float>(color_system_time.count()) / 1000000.0f);
+    ImGui::Text("Draw time: %f ms",
+                static_cast<float>(draw_system_time.count()) / 1000000.0f);
+
     if (b) {
       for (int i = 0; i < 500; i++) {
         spawn_new_body();
