@@ -2,11 +2,7 @@
 #include <numbers>
 #include <random>
 
-#include "box2d/types.h"
 #include "pch.hpp"
-
-#include <box2d/box2d.h>
-#include <raylib.h>
 
 auto rng =
     std::mt19937(std::chrono::steady_clock::now().time_since_epoch().count());
@@ -16,7 +12,6 @@ std::uniform_real_distribution<float> dis_size(2.0, 4.0);
 std::uniform_real_distribution<float> dis_vel_angle(0.0, 2 * std::numbers::pi);
 std::uniform_real_distribution<float> dis_start_color(0.0, 360.0);
 
-rtree tree;
 b2WorldId physicsId;
 
 struct PhysicsComponent {
@@ -31,13 +26,13 @@ struct ColorComponent {
   ColorComponent() : hue(dis_start_color(rng)) {}
 };
 
-void color_system(entt::registry &reg, float dt) {
-  const auto view = reg.view<ColorComponent>();
-  view.each([dt](ColorComponent &c) {
-    c.hue += 36.0 * dt;
-    if (c.hue > 360.0) {
-      c.hue = 0.0;
-    }
+void color_system(entt::registry &reg, float) {
+  const auto view = reg.view<PhysicsComponent, ColorComponent>();
+  view.each([](PhysicsComponent &p, ColorComponent &c) {
+    auto vel = b2Body_GetLinearVelocity(p.id);
+    auto radians = std::atan2(vel.y, vel.x);
+    auto degrees = radians * 180.0 / std::numbers::pi;
+    c.hue = degrees;
   });
 }
 
@@ -88,6 +83,21 @@ void mouse_interaction_system() {
   }
 }
 
+void remove_escaped_circles(entt::registry &reg) {
+  const auto view = reg.view<PhysicsComponent>();
+  const auto screen_width = GetScreenWidth();
+  const auto screen_height = GetScreenHeight();
+  view.each(
+      [&reg, screen_width, screen_height](entt::entity e, PhysicsComponent &p) {
+        auto pos = b2Body_GetPosition(p.id);
+        if (pos.x < 0.0 || pos.x > screen_width || pos.y < 0.0 ||
+            pos.y > screen_height) {
+          b2DestroyBody(p.id);
+          reg.destroy(e);
+        }
+      });
+}
+
 int main() {
   const int screenWidth = 1280;
   const int screenHeight = 720;
@@ -98,13 +108,15 @@ int main() {
   rlImGuiSetup(true);
 
   auto physicsDef = b2DefaultWorldDef();
-  physicsDef.gravity = b2Vec2{0.0f, 0.0};
+  physicsDef.gravity = b2Vec2{0.0f, 9.81};
+  physicsDef.enableSleep = false;
   physicsId = b2CreateWorld(&physicsDef);
 
   entt::registry registry;
 
   auto create_wall = [](float x, float y, float width, float height) {
     auto wallDef = b2DefaultBodyDef();
+    wallDef.type = b2_staticBody;
     wallDef.position = b2Vec2{x, y};
     auto wallId = b2CreateBody(physicsId, &wallDef);
     auto wallBox = b2MakeBox(width, height);
@@ -123,7 +135,7 @@ int main() {
 
     auto bodyDef = b2DefaultBodyDef();
     bodyDef.type = b2_dynamicBody;
-
+    bodyDef.gravityScale = 1.0;
     bodyDef.position =
         b2Vec2{static_cast<float>(GetScreenWidth()) / 2 + dis_position(rng),
                static_cast<float>(GetScreenHeight()) / 2 + dis_position(rng)};
@@ -137,7 +149,7 @@ int main() {
     auto shapeDef = b2DefaultShapeDef();
     shapeDef.density = 1.0f;
     shapeDef.friction = 0.0f;
-    shapeDef.restitution = 1.0f;
+    shapeDef.restitution = 0.0f;
     b2CreateCircleShape(bodyId, &shapeDef, &dynamicCircle);
     registry.emplace<PhysicsComponent>(entity, bodyId, dynamicCircle.radius);
   };
@@ -151,17 +163,28 @@ int main() {
     ClearBackground(Color{16, 16, 16, 255});
 
     auto dt = GetFrameTime();
-    b2World_Step(physicsId, dt, 4);
 
-    mouse_interaction_system();
+    // auto now = std::chrono::steady_clock().now().time_since_epoch();
+    b2World_Step(physicsId, dt, 4);
+    // auto elapsed = std::chrono::steady_clock().now().time_since_epoch() -
+    // now; std::cout << elapsed << std::endl;
+
+    remove_escaped_circles(registry);
+
+    if (!ImGui::GetIO().WantCaptureMouse)
+      mouse_interaction_system();
+
     color_system(registry, dt);
     draw_system(registry);
+
+    auto counters = b2World_GetCounters(physicsId);
 
     rlImGuiBegin();
     auto b = ImGui::Button("click me");
 
     ImGui::LabelText("", "Entities: %zu",
                      registry.view<entt::entity>().size_hint());
+    ImGui::LabelText("", "Physics bodies: %i", counters.bodyCount);
     if (b) {
       for (int i = 0; i < 500; i++) {
         spawn_new_body();
