@@ -1,102 +1,9 @@
-#include <chrono>
-#include <numbers>
-#include <random>
-
+#include "components.hpp"
 #include "pch.hpp"
-
-auto rng =
-    std::mt19937(std::chrono::steady_clock::now().time_since_epoch().count());
-
-std::uniform_real_distribution<float> dis_position(-300.0, 300.0);
-std::uniform_real_distribution<float> dis_size(2.0, 2.0);
-std::uniform_real_distribution<float> dis_vel_angle(0.0, 2 * std::numbers::pi);
-std::uniform_real_distribution<float> dis_start_color(0.0, 360.0);
+#include "random_ranges.hpp"
+#include "systems.hpp"
 
 b2WorldId physicsId;
-
-struct PhysicsComponent {
-  b2BodyId id;
-  float radius;
-
-  PhysicsComponent(b2BodyId id, float r) : id(id), radius(r) {}
-};
-
-struct ColorComponent {
-  float hue;
-  ColorComponent() : hue(dis_start_color(rng)) {}
-};
-
-void color_system(entt::registry &reg, float) {
-  const auto view = reg.view<PhysicsComponent, ColorComponent>();
-  view.each([](PhysicsComponent &p, ColorComponent &c) {
-    auto vel = b2Body_GetLinearVelocity(p.id);
-    auto radians = std::atan2(vel.y, vel.x);
-    auto degrees = radians * 180.0 / std::numbers::pi;
-    c.hue = degrees;
-  });
-}
-
-void draw_system(entt::registry &reg) {
-  const auto view = reg.view<const PhysicsComponent, const ColorComponent>();
-  view.each([](const PhysicsComponent &p, const ColorComponent &c) {
-    Color color = ColorFromHSV(c.hue, 1.0, 1.0);
-    auto pos = b2Body_GetPosition(p.id);
-    DrawCircle(pos.x, pos.y, p.radius, color);
-  });
-}
-
-struct OverlapContext {
-  b2Vec2 origin;
-  float multiplier;
-};
-
-bool overlapCallback(b2ShapeId shapeId, void *ctxptr) {
-  OverlapContext context = *reinterpret_cast<OverlapContext *>(ctxptr);
-  b2BodyId bodyId = b2Shape_GetBody(shapeId);
-  auto position = b2Body_GetPosition(bodyId);
-  auto distance_squared = b2DistanceSquared(position, context.origin);
-  auto dir = b2Normalize(position - context.origin);
-  auto force = dir * 2e10f;
-  force.x /= distance_squared;
-  force.y /= distance_squared;
-  b2Body_ApplyForceToCenter(bodyId, force * context.multiplier, true);
-  return true;
-}
-
-void mouse_interaction_system() {
-  const float force_radius = 300.0;
-  float force_direction = 0.0f;
-
-  if (IsMouseButtonDown(MOUSE_BUTTON_LEFT)) {
-    force_direction += 1.0f;
-  }
-  if (IsMouseButtonDown(MOUSE_BUTTON_RIGHT)) {
-    force_direction -= 1.0f;
-  }
-  if (force_direction != 0.0f) {
-    auto mouse_pos = GetMousePosition();
-    b2Vec2 origin = {mouse_pos.x, mouse_pos.y};
-    b2Circle circle = {origin, force_radius};
-    OverlapContext context{origin, force_direction};
-    b2World_OverlapCircle(physicsId, &circle, b2Transform_identity,
-                          b2DefaultQueryFilter(), &overlapCallback, &context);
-  }
-}
-
-void remove_escaped_circles(entt::registry &reg) {
-  const auto view = reg.view<PhysicsComponent>();
-  const auto screen_width = GetScreenWidth();
-  const auto screen_height = GetScreenHeight();
-  view.each(
-      [&reg, screen_width, screen_height](entt::entity e, PhysicsComponent &p) {
-        auto pos = b2Body_GetPosition(p.id);
-        if (pos.x < 0.0 || pos.x > screen_width || pos.y < 0.0 ||
-            pos.y > screen_height) {
-          b2DestroyBody(p.id);
-          reg.destroy(e);
-        }
-      });
-}
 
 int main() {
   const int screenWidth = 1280;
@@ -172,7 +79,7 @@ int main() {
     remove_escaped_circles(registry);
 
     if (!ImGui::GetIO().WantCaptureMouse)
-      mouse_interaction_system();
+      mouse_interaction_system(physicsId);
 
     now = std::chrono::steady_clock().now().time_since_epoch();
     color_system(registry, dt);

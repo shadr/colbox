@@ -8,3 +8,4 @@ compile_commands.json
 imgui.ini
 _deps
 libs/**/*.a
+libs/**/*.so

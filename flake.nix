@@ -32,7 +32,6 @@
             imgui
             entt
             glm
-            boost
           ];
         };
       }

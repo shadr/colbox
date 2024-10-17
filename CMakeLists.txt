@@ -16,7 +16,7 @@ add_subdirectory(libs/rlImGui)
 
 include_directories(libs/)
 
-add_executable(main src/main.cpp)
+add_executable(main src/main.cpp src/systems.cpp src/components.cpp src/random_ranges.cpp)
 target_precompile_headers(main PUBLIC src/pch.hpp)
 
 target_link_libraries(main rlImGui)
