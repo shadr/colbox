@@ -9,7 +9,7 @@ set(ENTT_VERSION v3.13.2)
 
 set(FETCHCONTENT_QUIET FALSE)
 
-project(sgame)
+project(colbox)
 
 set(CMAKE_EXPORT_COMPILE_COMMANDS TRUE)
 

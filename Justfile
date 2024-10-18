@@ -12,7 +12,7 @@ build:
 
 run:
 	# filters out warning: wayland does not support getting window position
-	cd build && ./sgame 2>&1 | grep --invert-match "WARNING: GLFW: Error: 65548"
+	cd build && ./colbox 2>&1 | grep --invert-match "WARNING: GLFW: Error: 65548"
 
 build-web-init build_type=default_web_build_type:
 	mkdir -p build-web
@@ -22,4 +22,4 @@ build-web:
 	cd build-web && emmake make -j9
 
 run-web:
-	cd build-web && emrun sgame.html
+	cd build-web && emrun colbox.html
