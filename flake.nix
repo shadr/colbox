@@ -29,7 +29,6 @@
             llvmPackages_latest.bintools
             cmake
             glfw
-            entt
             emscripten
             just
           ];
