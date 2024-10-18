@@ -9,3 +9,4 @@ imgui.ini
 _deps
 libs/**/*.a
 libs/**/*.so
+build*/

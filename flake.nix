@@ -28,10 +28,10 @@
             llvmPackages_latest.llvm
             llvmPackages_latest.bintools
             cmake
-            raylib
-            imgui
+            glfw
             entt
-            glm
+            emscripten
+            just
           ];
         };
       }

@@ -42,7 +42,7 @@ int main() {
     auto bodyDef = b2DefaultBodyDef();
     bodyDef.type = b2_dynamicBody;
     bodyDef.gravityScale = 1.0;
-    bodyDef.linearDamping = 0.1f;
+    // bodyDef.linearDamping = 0.1f;
     bodyDef.position =
         b2Vec2{static_cast<float>(GetScreenWidth()) / 2 + dis_position(rng),
                static_cast<float>(GetScreenHeight()) / 2 + dis_position(rng)};
@@ -55,8 +55,8 @@ int main() {
     dynamicCircle.radius = dis_size(rng);
     auto shapeDef = b2DefaultShapeDef();
     shapeDef.density = 1.0f;
-    shapeDef.friction = 1.0f;
-    shapeDef.restitution = 0.0f;
+    shapeDef.friction = 0.0f;
+    // shapeDef.restitution = 1.0f;
     b2CreateCircleShape(bodyId, &shapeDef, &dynamicCircle);
     registry.emplace<PhysicsComponent>(entity, bodyId, dynamicCircle.radius);
   };
