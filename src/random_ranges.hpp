@@ -1,3 +1,4 @@
+#pragma once
 #include "pch.hpp"
 
 extern std::mt19937 rng;

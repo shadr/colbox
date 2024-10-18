@@ -1,5 +1,5 @@
 #pragma once
-#include <chrono>
+#include "pch.hpp"
 
 struct Statistics {
   std::chrono::duration<long, std::ratio<1, 1000000000>> draw;

@@ -1,3 +1,4 @@
+#pragma once
 #include "game.hpp"
 #include "stats.hpp"
 

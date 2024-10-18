@@ -31,6 +31,7 @@
             glfw
             emscripten
             just
+            mold
           ];
         };
       }
