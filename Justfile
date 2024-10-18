@@ -4,7 +4,7 @@ default_web_build_type:='Release'
 
 build build_type=default_build_type:
 	mkdir -p build
-	cd build && cmake .. -DCMAKE_CXX_COMPILER=clang++ -DCMAKE_C_COMPILER=clang -DCMAKE_BUILD_TYPE={{build_type}}
+	# cd build && cmake .. -DCMAKE_CXX_COMPILER=clang++ -DCMAKE_C_COMPILER=clang -DCMAKE_BUILD_TYPE={{build_type}}
 	cd build && make -j9
 
 run build_type=default_build_type: (build build_type)
