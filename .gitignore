@@ -10,3 +10,5 @@ _deps
 libs/**/*.a
 libs/**/*.so
 build*/
+.direnv
+.envrc
