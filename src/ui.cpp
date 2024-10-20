@@ -16,6 +16,9 @@ void draw_ui(Game &game, Statistics &stats, float dt) {
   ImGui::Text("Draw time: %6.3f ms",
               static_cast<float>(stats.draw.count()) / 1000000.0f);
 
+  ImGui::Checkbox("Enable rendering ", &game.enable_render);
+  ImGui::Checkbox("Enable physics ", &game.enable_physics);
+
   if (b) {
     for (int i = 0; i < 500; i++) {
       spawn_new_body(game.ecs, game.physicsId);

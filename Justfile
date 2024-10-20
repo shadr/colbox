@@ -4,13 +4,13 @@ default_web_build_type:='Release'
 
 build-init build_type=default_build_type:
 	mkdir -p build
-	cd build && cmake .. -DCMAKE_CXX_COMPILER=clang++ -DCMAKE_C_COMPILER=clang -dcmake_BUILD_TYPE={{build_type}}
+	cd build && cmake .. -DCMAKE_CXX_COMPILER=clang++ -DCMAKE_C_COMPILER=clang -DCMAKE_BUILD_TYPE={{build_type}}
 
 build:
 	cd build && make -j9
 	@cp build/compile_commands.json compile_commands.json
 
-run:
+run: build
 	# filters out warning: wayland does not support getting window position
 	cd build && ./colbox 2>&1 | grep --invert-match "WARNING: GLFW: Error: 65548"
 

@@ -7,6 +7,9 @@ struct Game {
   b2WorldId physicsId;
   entt::registry ecs;
 
+  bool enable_render = true;
+  bool enable_physics = true;
+
   void init_world();
   void loop();
 
