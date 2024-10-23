@@ -1,4 +1,5 @@
 #include "game.hpp"
+#include "circle_renderer.hpp"
 #include "components.hpp"
 #include "random_ranges.hpp"
 #include "stats.hpp"
@@ -61,7 +62,7 @@ void Game::loop() {
 
   auto now = std::chrono::steady_clock().now().time_since_epoch();
   if (enable_physics)
-  b2World_Step(physicsId, dt, 4);
+    b2World_Step(physicsId, dt, 4);
   auto physics_step_time =
       std::chrono::steady_clock().now().time_since_epoch() - now;
 
@@ -76,7 +77,7 @@ void Game::loop() {
       std::chrono::steady_clock().now().time_since_epoch() - now;
   now = std::chrono::steady_clock().now().time_since_epoch();
   if (enable_render)
-    draw_system(ecs);
+    draw_circles(ecs);
   auto draw_system_time =
       std::chrono::steady_clock().now().time_since_epoch() - now;
 

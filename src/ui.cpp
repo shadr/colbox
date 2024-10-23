@@ -1,4 +1,5 @@
 #include "ui.hpp"
+#include "imgui.h"
 #include "stats.hpp"
 
 void draw_ui(Game &game, Statistics &stats, float dt) {

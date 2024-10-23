@@ -1,3 +1,4 @@
+#include "circle_renderer.hpp"
 #include "components.hpp"
 #include "game.hpp"
 #include "pch.hpp"
@@ -16,6 +17,7 @@ int main() {
   physicsDef.gravity = b2Vec2{0.0f, 9.81};
 
   Game game = {b2CreateWorld(&physicsDef), entt::registry()};
+  CircleRenderer::init();
 
   game.init_world();
 

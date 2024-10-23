@@ -1,6 +1,7 @@
 #include "systems.hpp"
 #include "components.hpp"
 #include "pch.hpp"
+#include "rlgl.h"
 
 struct OverlapContext {
   b2Vec2 origin;
@@ -14,15 +15,6 @@ void color_system(entt::registry &reg, float) {
     auto radians = std::atan2(vel.y, vel.x);
     auto degrees = radians * 180.0 / std::numbers::pi;
     c.hue = degrees;
-  });
-}
-
-void draw_system(entt::registry &reg) {
-  const auto view = reg.view<const PhysicsComponent, const ColorComponent>();
-  view.each([](const PhysicsComponent &p, const ColorComponent &c) {
-    Color color = ColorFromHSV(c.hue, 1.0, 1.0);
-    auto pos = b2Body_GetPosition(p.id);
-    DrawCircle(pos.x, pos.y, p.radius, color);
   });
 }
 
