@@ -18,7 +18,7 @@ std::string read_file(const std::filesystem::path &path) {
   return ss.str();
 }
 
-void draw_circles(entt::registry &reg) {
+void draw_circles(entt::registry &reg, const glm::mat4 &viewproj) {
   const auto view = reg.view<const PhysicsComponent, const ColorComponent>();
   std::vector<CircleData> data;
   view.each([&data](const PhysicsComponent &p, const ColorComponent &c) {
@@ -35,6 +35,6 @@ void draw_circles(entt::registry &reg) {
         col,
     });
   });
-  CircleRenderer::update(&data.front(), data.size());
+  CircleRenderer::update(&data.front(), data.size(), viewproj);
   CircleRenderer::draw();
 }

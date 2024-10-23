@@ -13,10 +13,7 @@ int main() {
   // SetTargetFPS(60);
   rlImGuiSetup(true);
 
-  auto physicsDef = b2DefaultWorldDef();
-  physicsDef.gravity = b2Vec2{0.0f, 9.81};
-
-  Game game = {b2CreateWorld(&physicsDef), entt::registry()};
+  Game game;
   CircleRenderer::init();
 
   game.init_world();

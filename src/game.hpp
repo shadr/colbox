@@ -10,8 +10,14 @@ struct Game {
   bool enable_render = true;
   bool enable_physics = true;
 
+  glm::mat4 proj;
+  glm::mat4 view;
+  glm::mat4 viewproj;
+
   void init_world();
   void loop();
+
+  Game();
 
   ~Game() { b2DestroyWorld(physicsId); }
 };

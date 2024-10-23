@@ -6,6 +6,19 @@
 #include "systems.hpp"
 #include "ui.hpp"
 
+Game::Game() : ecs(entt::registry()) {
+  auto physicsDef = b2DefaultWorldDef();
+  physicsDef.gravity = b2Vec2{0.0f, 9.81};
+  physicsId = b2CreateWorld(&physicsDef);
+
+  float w = (float)GetScreenWidth();
+  float h = (float)GetScreenHeight();
+  proj = glm::ortho(-w / 2.f, w / 2.f, -h / 2.f, h / 2.f, -10.0f, 10.0f);
+  view = glm::lookAt(glm::vec3(w, h, -4.f) / 2.0f, glm::vec3(w, h, 0.f) / 2.0f,
+                     glm::vec3(0.0, -1.0, 0.0));
+  viewproj = proj * view;
+}
+
 void spawn_wall(b2WorldId physicsId, float x, float y, float width,
                 float height) {
   auto wallDef = b2DefaultBodyDef();
@@ -77,7 +90,7 @@ void Game::loop() {
       std::chrono::steady_clock().now().time_since_epoch() - now;
   now = std::chrono::steady_clock().now().time_since_epoch();
   if (enable_render)
-    draw_circles(ecs);
+    draw_circles(ecs, viewproj);
   auto draw_system_time =
       std::chrono::steady_clock().now().time_since_epoch() - now;
 

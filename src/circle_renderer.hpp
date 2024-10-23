@@ -9,7 +9,7 @@
 #include <fstream>
 #include <iostream>
 
-#include <GL/gl.h>
+#include <GLES3/gl3.h>
 #include <rlgl.h>
 
 #define check_errors()                                                         \
@@ -111,20 +111,11 @@ struct CircleRenderer {
     rlDisableVertexArray();
   }
 
-  static void update(const CircleData *ptr, size_t length) {
+  static void update(const CircleData *ptr, size_t length,
+                     const glm::mat4 &viewproj) {
     rlEnableShader(shader);
-    float w = (float)GetScreenWidth();
-    float h = (float)GetScreenHeight();
-    auto proj = glm::ortho(-w / 2.f, w / 2.f, -h / 2.f, h / 2.f, -10.0f, 10.0f);
-    auto view =
-        glm::lookAt(glm::vec3(w, h, -4.f) / 2.0f, glm::vec3(w, h, 0.f) / 2.0f,
-                    glm::vec3(0.0, -1.0, 0.0));
 
-    auto mvp = proj * view;
-
-    auto mvp_t = glm::transpose(mvp);
-    Matrix &mat = reinterpret_cast<Matrix &>(mvp_t);
-    rlSetUniformMatrix(viewproj_loc, mat);
+    glUniformMatrix4fv(viewproj_loc, 1, false, (float *)&viewproj);
     check_errors();
     rlEnableVertexArray(vao);
     rlUpdateVertexBuffer(instance_vbo, reinterpret_cast<const void *>(ptr),
@@ -147,4 +138,4 @@ struct CircleRenderer {
   }
 };
 
-void draw_circles(entt::registry &reg);
+void draw_circles(entt::registry &reg, const glm::mat4 &viewproj);
