@@ -21,5 +21,5 @@ build-web-init build_type=default_web_build_type:
 build-web:
 	cd build-web && emmake make -j9
 
-run-web:
+run-web: build-web
 	cd build-web && emrun colbox.html

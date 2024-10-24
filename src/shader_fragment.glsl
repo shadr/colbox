@@ -1,16 +1,16 @@
-#version 330
+#version 100
 
-in vec2 uv;
-in vec4 color;
-in float radius;
+varying mediump vec2 uv;
+varying mediump vec4 color;
+varying mediump float radius;
 
-out vec4 finalColor;
+varying mediump vec4 finalColor;
 
 void main()
 {
-	float dist = length(uv - vec2(0.5));
+	mediump float dist = length(uv - vec2(0.5));
 	if (dist < 0.5)
-		finalColor = color;
+		gl_FragColor = color;
 	else
 		discard;
 }

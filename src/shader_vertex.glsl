@@ -1,15 +1,15 @@
-#version 330
+#version 100
 
-layout (location = 0) in vec2 pos;
-layout (location = 1) in vec2 offset;
-layout (location = 2) in float aRadius;
-layout (location = 3) in vec4 aColor;
+attribute vec2 pos;
+attribute vec2 offset;
+attribute float aRadius;
+attribute vec4 aColor;
 
 uniform mat4 viewproj;
 
-out vec2 uv;
-out vec4 color;
-out float radius;
+varying vec2 uv;
+varying vec4 color;
+varying float radius;
 
 void main()
 {

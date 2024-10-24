@@ -28,7 +28,7 @@ struct CircleData {
   glm::vec4 color;
 };
 
-std::string read_file(const std::filesystem::path &path);
+std::string find_file(const std::filesystem::path &path);
 
 struct CircleRenderer {
   static unsigned int vao;
@@ -40,8 +40,8 @@ struct CircleRenderer {
   static int viewproj_loc;
 
   static void init() {
-    auto vertex_shader = read_file("../src/shader_vertex.glsl");
-    auto fragment_shader = read_file("../src/shader_fragment.glsl");
+    auto vertex_shader = find_file("shader_vertex.glsl");
+    auto fragment_shader = find_file("shader_fragment.glsl");
 
     unsigned int vshader =
         rlCompileShader(vertex_shader.c_str(), RL_VERTEX_SHADER);

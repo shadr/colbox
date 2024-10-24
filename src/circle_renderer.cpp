@@ -9,10 +9,18 @@ unsigned int CircleRenderer::shader = 0;
 size_t CircleRenderer::length = 0;
 int CircleRenderer::viewproj_loc = -1;
 
-std::string read_file(const std::filesystem::path &path) {
-  std::ifstream file(path);
+std::string find_file(const std::filesystem::path &file_name) {
+  static const std::filesystem::path paths[] = {"./", "../", "../src/"};
+  std::ifstream file;
+  for (auto prefix : paths) {
+    auto path = prefix;
+    path += file_name;
+    file = std::ifstream(path);
+    if (file.good())
+      break;
+  }
   if (!file.is_open())
-    std::cout << "failed to open: " << path << std::endl;
+    std::cout << "failed to open: " << file_name << std::endl;
   std::stringstream ss;
   ss << file.rdbuf();
   return ss.str();

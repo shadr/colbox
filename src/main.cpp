@@ -10,7 +10,7 @@ int main() {
 
   SetConfigFlags(FLAG_MSAA_4X_HINT);
   InitWindow(screenWidth, screenHeight, "raylibapp");
-  // SetTargetFPS(60);
+  SetTargetFPS(60);
   rlImGuiSetup(true);
 
   Game game;
