@@ -6,7 +6,7 @@ on:
   workflow_dispatch:
 
 jobs:
-  build:
+  build-and-deploy:
     runs-on: ubuntu-latest
     steps:
     - uses: mymindstorm/setup-emsdk@v14
@@ -16,3 +16,8 @@ jobs:
       run: just build-web-init
     - name: Build
       run: just build-web
+    - name: Deploy
+      uses: JamesIves/github-pages-deploy-action@v4
+      with:
+        folder: build-web/dst
+        branch: gh-pages
