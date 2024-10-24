@@ -22,4 +22,4 @@ build-web:
 	cd build-web && emmake make -j9
 
 run-web: build-web
-	cd build-web && emrun colbox.html
+	cd build-web && emrun dst/colbox.html
