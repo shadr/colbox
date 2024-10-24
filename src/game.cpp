@@ -9,7 +9,7 @@
 
 Game::Game() : ecs(entt::registry()) {
   auto physicsDef = b2DefaultWorldDef();
-  physicsDef.gravity = b2Vec2{gravity[0], gravity[1] };
+  physicsDef.gravity = b2Vec2{gravity[0], gravity[1]};
   physicsId = b2CreateWorld(&physicsDef);
   recalulate_view_projection();
 }
@@ -102,7 +102,7 @@ void Game::init_world() {
 }
 
 void Game::update_gravity() {
-  b2World_SetGravity(physicsId, reinterpret_cast<b2Vec2&>(gravity));
+  b2World_SetGravity(physicsId, reinterpret_cast<b2Vec2 &>(gravity));
 }
 
 void Game::loop() {

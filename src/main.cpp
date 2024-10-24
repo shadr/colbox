@@ -10,7 +10,7 @@ int main() {
   const int screenHeight = 720;
 
   SetConfigFlags(FLAG_MSAA_4X_HINT | FLAG_WINDOW_RESIZABLE);
-  InitWindow(screenWidth, screenHeight, "raylibapp");
+  InitWindow(screenWidth, screenHeight, "colbox");
   SetTargetFPS(60);
   rlImGuiSetup(true);
 

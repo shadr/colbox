@@ -14,7 +14,7 @@ struct Game {
   glm::mat4 view;
   glm::mat4 viewproj;
 
-  float gravity[2] = { 0.0f, 9.81f };
+  float gravity[2] = {0.0f, 9.81f};
 
   void init_world();
   void loop();
