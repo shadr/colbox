@@ -13,13 +13,18 @@ jobs:
   build-and-deploy:
     runs-on: ubuntu-latest
     steps:
-    - uses: mymindstorm/setup-emsdk@v14
-    - uses: actions/checkout@v3
-    - uses: extractions/setup-just@v1
+    - name: Checkout code
+      uses: actions/checkout@v3
+    - name: Install Emscripten sdk
+      uses: mymindstorm/setup-emsdk@v14
+    - name: Install Just
+      uses: extractions/setup-just@v1
     - name: Build init
       run: just build-web-init
     - name: Build
       run: just build-web
+    - name: Rename html file
+      run: mv build-web/dst/colbox.html build-web/dst/index.html
     - name: Deploy
       uses: JamesIves/github-pages-deploy-action@v4
       with:
