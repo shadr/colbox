@@ -14,6 +14,8 @@ jobs:
     - uses: m3y/rust-just-action@v1
       with:
         command: build-web-init
+        file: ./Justfile
     - uses: m3y/rust-just-action@v1
       with:
         command: build-web
+        file: ./Justfile
