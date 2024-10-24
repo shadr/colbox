@@ -1,4 +1,5 @@
 #include "game.hpp"
+#include "box2d/box2d.h"
 #include "circle_renderer.hpp"
 #include "components.hpp"
 #include "random_ranges.hpp"
@@ -10,7 +11,10 @@ Game::Game() : ecs(entt::registry()) {
   auto physicsDef = b2DefaultWorldDef();
   physicsDef.gravity = b2Vec2{0.0f, 9.81};
   physicsId = b2CreateWorld(&physicsDef);
+  recalulate_view_projection();
+}
 
+void Game::recalulate_view_projection() {
   float w = (float)GetScreenWidth();
   float h = (float)GetScreenHeight();
   proj = glm::ortho(-w / 2.f, w / 2.f, -h / 2.f, h / 2.f, -10.0f, 10.0f);
@@ -56,11 +60,40 @@ void spawn_new_body(entt::registry &registry, b2WorldId physicsId) {
   registry.emplace<PhysicsComponent>(entity, bodyId, dynamicCircle.radius);
 }
 
+void Game::recreate_walls() {
+  // TODO: do not recreate walls, instead move existing walls to the new position
+  // remove walls
+  auto view = ecs.view<WallMarker>();
+  view.each([this](entt::entity e, WallMarker &wall) {
+    ecs.destroy(e);
+    b2DestroyBody(wall.id);
+  });
+
+  // spawn walls
+  float w = (float)GetScreenWidth();
+  float h = (float)GetScreenHeight();
+  float arr[][4] = {
+      {0.0f, 0.0f, 4.0f, h},
+      {w, 0.0f, 4.0f, h},
+      {0.0f, 0.0f, w, 4.0f},
+      {0.0f, h, w, 4.0f},
+  };
+  for (auto [x, y, width, height] : arr) {
+    auto wallDef = b2DefaultBodyDef();
+    wallDef.type = b2_staticBody;
+    wallDef.position = b2Vec2{x, y};
+    auto wallId = b2CreateBody(physicsId, &wallDef);
+    auto wallBox = b2MakeBox(width, height);
+    auto wallShapeDef = b2DefaultShapeDef();
+    b2CreatePolygonShape(wallId, &wallShapeDef, &wallBox);
+
+    auto entity = ecs.create();
+    ecs.emplace<WallMarker>(entity, wallId);
+  }
+}
+
 void Game::init_world() {
-  spawn_wall(physicsId, 0.0f, 0.0f, 4.0f, GetScreenHeight());
-  spawn_wall(physicsId, GetScreenWidth(), 0.0f, 4.0f, GetScreenHeight());
-  spawn_wall(physicsId, 0.0f, 0.0f, GetScreenWidth(), 4.0f);
-  spawn_wall(physicsId, 0.0f, GetScreenHeight(), GetScreenWidth(), 4.0f);
+  recreate_walls();
 
   for (int i = 0; i < 50; i++) {
     spawn_new_body(ecs, physicsId);
@@ -68,6 +101,11 @@ void Game::init_world() {
 }
 
 void Game::loop() {
+  if (IsWindowResized()) {
+    recalulate_view_projection();
+    recreate_walls();
+  }
+
   BeginDrawing();
   ClearBackground(Color{16, 16, 16, 255});
 

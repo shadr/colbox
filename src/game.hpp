@@ -18,6 +18,8 @@ struct Game {
   void loop();
 
   Game();
-
   ~Game() { b2DestroyWorld(physicsId); }
+
+  void recalulate_view_projection();
+  void recreate_walls();
 };

@@ -12,3 +12,7 @@ struct ColorComponent {
   float hue;
   ColorComponent();
 };
+
+struct WallMarker {
+  b2BodyId id;
+};
