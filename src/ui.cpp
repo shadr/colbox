@@ -20,6 +20,11 @@ void draw_ui(Game &game, Statistics &stats, float dt) {
   ImGui::Checkbox("Enable rendering ", &game.enable_render);
   ImGui::Checkbox("Enable physics ", &game.enable_physics);
 
+  bool is_gravity_changed =
+      ImGui::SliderFloat2("Gravity", game.gravity, -20.0f, 20.0f);
+  if (is_gravity_changed)
+    game.update_gravity();
+
   if (b) {
     for (int i = 0; i < 500; i++) {
       spawn_new_body(game.ecs, game.physicsId);

@@ -9,7 +9,7 @@
 
 Game::Game() : ecs(entt::registry()) {
   auto physicsDef = b2DefaultWorldDef();
-  physicsDef.gravity = b2Vec2{0.0f, 9.81};
+  physicsDef.gravity = b2Vec2{gravity[0], gravity[1] };
   physicsId = b2CreateWorld(&physicsDef);
   recalulate_view_projection();
 }
@@ -48,6 +48,7 @@ void spawn_new_body(entt::registry &registry, b2WorldId physicsId) {
   bodyDef.linearVelocity =
       b2Vec2{std::cos(dis_vel_angle(rng)), std::sin(dis_vel_angle(rng))} *
       150.0f;
+  bodyDef.isBullet = true;
   auto bodyId = b2CreateBody(physicsId, &bodyDef);
   b2Circle dynamicCircle;
   dynamicCircle.center = b2Vec2{0.0f, 0.0f};
@@ -61,8 +62,8 @@ void spawn_new_body(entt::registry &registry, b2WorldId physicsId) {
 }
 
 void Game::recreate_walls() {
-  // TODO: do not recreate walls, instead move existing walls to the new position
-  // remove walls
+  // TODO: do not recreate walls, instead move existing walls to the new
+  // position remove walls
   auto view = ecs.view<WallMarker>();
   view.each([this](entt::entity e, WallMarker &wall) {
     ecs.destroy(e);
@@ -98,6 +99,10 @@ void Game::init_world() {
   for (int i = 0; i < 50; i++) {
     spawn_new_body(ecs, physicsId);
   }
+}
+
+void Game::update_gravity() {
+  b2World_SetGravity(physicsId, reinterpret_cast<b2Vec2&>(gravity));
 }
 
 void Game::loop() {
