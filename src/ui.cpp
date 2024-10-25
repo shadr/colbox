@@ -28,6 +28,8 @@ void Ui::draw_ui(Statistics &stats, float dt) {
   if (is_gravity_changed)
     game.update_gravity();
 
+  ImGui::SliderFloat("Tool radius", &game.tool_radius, 1.0f, 1000.0f);
+
   static const char *tool_names[] = {"None", "Force", "Paint"};
   bool is_tool_changed = ImGui::Combo("Tool", &tool_index, tool_names, 3);
 

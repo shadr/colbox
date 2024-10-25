@@ -142,6 +142,11 @@ void Game::loop() {
   Statistics stats{draw_system_time, color_system_time, physics_step_time,
                    counters};
 
+  if (tool != Tool::None) {
+    rlSetLineWidth(0.25f);
+    DrawCircleLinesV(GetMousePosition(), tool_radius, RAYWHITE);
+  }
+
   ui_drawer.draw_ui(stats, dt);
 
   DrawFPS(10, 10);
