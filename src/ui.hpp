@@ -6,6 +6,7 @@ struct Game;
 class Ui {
   Game &game;
   int tool_index = 1;
+    int property_index = 0;
 
 public:
   Ui(Game &game) : game(game) {}

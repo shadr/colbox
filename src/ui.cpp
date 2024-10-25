@@ -1,5 +1,5 @@
-#include "game.hpp"
 #include "ui.hpp"
+#include "game.hpp"
 #include "imgui.h"
 #include "stats.hpp"
 #include "tool.hpp"
@@ -46,6 +46,20 @@ void Ui::draw_ui(Statistics &stats, float dt) {
   }
 
   if (game.tool == Tool::Paint) {
+    static const char *property_names[] = {
+        "Friction",
+        "Restitution",
+    };
+    if (ImGui::Combo("Property", &property_index, property_names, 2)) {
+      switch (property_index) {
+      case 0:
+        game.paint_data.prop = PaintProperty::Friction;
+        break;
+      case 1:
+        game.paint_data.prop = PaintProperty::Restitution;
+        break;
+      }
+    }
     ImGui::SliderFloat("Property value", &game.paint_data.value, 0.0f, 1.0f);
   }
 
