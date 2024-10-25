@@ -6,7 +6,10 @@
 
 void Ui::draw_ui(Statistics &stats, float dt) {
   rlImGuiBegin();
-  auto b = ImGui::Button("click me");
+
+  auto spawn_new_shapes = ImGui::Button("Spawn shapes");
+  ImGui::SameLine();
+  ImGui::InputInt("Amount", &spawn_amount);
 
   ImGui::Text("Entities: %zu", game.ecs.view<entt::entity>().size_hint());
 
@@ -34,17 +37,7 @@ void Ui::draw_ui(Statistics &stats, float dt) {
   bool is_tool_changed = ImGui::Combo("Tool", &tool_index, tool_names, 3);
 
   if (is_tool_changed) {
-    switch (tool_index) {
-    case 0:
-      game.tool = Tool::None;
-      break;
-    case 1:
-      game.tool = Tool::Force;
-      break;
-    case 2:
-      game.tool = Tool::Paint;
-      break;
-    }
+    game.tool = static_cast<Tool>(tool_index);
   }
 
   if (game.tool == Tool::Paint) {
@@ -53,20 +46,13 @@ void Ui::draw_ui(Statistics &stats, float dt) {
         "Restitution",
     };
     if (ImGui::Combo("Property", &property_index, property_names, 2)) {
-      switch (property_index) {
-      case 0:
-        game.paint_data.prop = PaintProperty::Friction;
-        break;
-      case 1:
-        game.paint_data.prop = PaintProperty::Restitution;
-        break;
-      }
+      game.paint_data.prop = static_cast<PaintProperty>(property_index);
     }
     ImGui::SliderFloat("Property value", &game.paint_data.value, 0.0f, 1.0f);
   }
 
-  if (b) {
-    for (int i = 0; i < 500; i++) {
+  if (spawn_new_shapes) {
+    for (int i = 0; i < spawn_amount; i++) {
       spawn_new_body(game.ecs, game.physicsId);
     }
   }
