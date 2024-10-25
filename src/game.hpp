@@ -1,5 +1,6 @@
 #pragma once
 #include "pch.hpp"
+#include "tool.hpp"
 
 void spawn_new_body(entt::registry &registry, b2WorldId physicsId);
 
@@ -15,6 +16,12 @@ struct Game {
   glm::mat4 viewproj;
 
   float gravity[2] = {0.0f, 9.81f};
+
+  Tool tool = Tool::Force;
+  int tool_index = 1;
+  float tool_radius = 300.0f;
+
+  PaintData paint_data {PaintProperty::Restitution, 1.0f};
 
   void init_world();
   void loop();

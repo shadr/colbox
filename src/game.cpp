@@ -125,7 +125,7 @@ void Game::loop() {
   remove_escaped_circles(ecs);
 
   if (!ImGui::GetIO().WantCaptureMouse)
-    mouse_interaction_system(physicsId);
+    mouse_interaction_system(physicsId, tool, tool_radius, paint_data);
 
   now = std::chrono::steady_clock().now().time_since_epoch();
   color_system(ecs, dt);

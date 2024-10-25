@@ -1,6 +1,7 @@
 #include "ui.hpp"
 #include "imgui.h"
 #include "stats.hpp"
+#include "tool.hpp"
 
 void draw_ui(Game &game, Statistics &stats, float dt) {
   rlImGuiBegin();
@@ -22,8 +23,30 @@ void draw_ui(Game &game, Statistics &stats, float dt) {
 
   bool is_gravity_changed =
       ImGui::SliderFloat2("Gravity", game.gravity, -20.0f, 20.0f);
+
   if (is_gravity_changed)
     game.update_gravity();
+
+  static const char *tool_names[] = {"None", "Force", "Paint"};
+  bool is_tool_changed = ImGui::Combo("Tool", &game.tool_index, tool_names, 3);
+
+  if (is_tool_changed) {
+    switch (game.tool_index) {
+    case 0:
+      game.tool = Tool::None;
+      break;
+    case 1:
+      game.tool = Tool::Force;
+      break;
+    case 2:
+      game.tool = Tool::Paint;
+      break;
+    }
+  }
+
+  if (game.tool == Tool::Paint) {
+    ImGui::SliderFloat("Property value", &game.paint_data.value, 0.0f, 1.0f);
+  }
 
   if (b) {
     for (int i = 0; i < 500; i++) {
