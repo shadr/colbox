@@ -1,5 +1,14 @@
 #pragma once
-#include "game.hpp"
 #include "stats.hpp"
 
-void draw_ui(Game &game, Statistics &stats, float dt);
+struct Game;
+
+class Ui {
+  Game &game;
+  int tool_index = 1;
+
+public:
+  Ui(Game &game) : game(game) {}
+
+  void draw_ui(Statistics &stats, float dt);
+};

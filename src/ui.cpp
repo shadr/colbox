@@ -1,9 +1,10 @@
+#include "game.hpp"
 #include "ui.hpp"
 #include "imgui.h"
 #include "stats.hpp"
 #include "tool.hpp"
 
-void draw_ui(Game &game, Statistics &stats, float dt) {
+void Ui::draw_ui(Statistics &stats, float dt) {
   rlImGuiBegin();
   auto b = ImGui::Button("click me");
 
@@ -28,10 +29,10 @@ void draw_ui(Game &game, Statistics &stats, float dt) {
     game.update_gravity();
 
   static const char *tool_names[] = {"None", "Force", "Paint"};
-  bool is_tool_changed = ImGui::Combo("Tool", &game.tool_index, tool_names, 3);
+  bool is_tool_changed = ImGui::Combo("Tool", &tool_index, tool_names, 3);
 
   if (is_tool_changed) {
-    switch (game.tool_index) {
+    switch (tool_index) {
     case 0:
       game.tool = Tool::None;
       break;

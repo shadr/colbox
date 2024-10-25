@@ -142,7 +142,7 @@ void Game::loop() {
   Statistics stats{draw_system_time, color_system_time, physics_step_time,
                    counters};
 
-  draw_ui(*this, stats, dt);
+  ui_drawer.draw_ui(stats, dt);
 
   DrawFPS(10, 10);
   EndDrawing();
