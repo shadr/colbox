@@ -31,25 +31,24 @@ void Ui::draw_ui(Statistics &stats, float dt) {
   if (is_gravity_changed)
     game.update_gravity();
 
-  ImGui::SliderFloat("Tool radius", &game.tool_radius, 1.0f, 1000.0f);
-
   static const char *tool_names[] = {"None", "Force", "Paint"};
   bool is_tool_changed = ImGui::Combo("Tool", &tool_index, tool_names, 3);
 
   if (is_tool_changed) {
-    game.tool = static_cast<Tool>(tool_index);
+    switch (tool_index) {
+    case 0:
+      game.current_tool = new NoneTool();
+      break;
+    case 1:
+      game.current_tool = new ForceTool();
+      break;
+    case 2:
+      game.current_tool = new PaintPropertyTool();
+      break;
+    }
   }
 
-  if (game.tool == Tool::Paint) {
-    static const char *property_names[] = {
-        "Friction",
-        "Restitution",
-    };
-    if (ImGui::Combo("Property", &property_index, property_names, 2)) {
-      game.paint_data.prop = static_cast<PaintProperty>(property_index);
-    }
-    ImGui::SliderFloat("Property value", &game.paint_data.value, 0.0f, 1.0f);
-  }
+  game.current_tool->ui();
 
   if (spawn_new_shapes) {
     for (int i = 0; i < spawn_amount; i++) {

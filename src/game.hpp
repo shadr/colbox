@@ -20,10 +20,7 @@ struct Game {
 
   float gravity[2] = {0.0f, 9.81f};
 
-  Tool tool = Tool::Force;
-  float tool_radius = 300.0f;
-
-  PaintData paint_data{PaintProperty::Restitution, 1.0f};
+  BaseTool *current_tool = new ForceTool();
 
   void init_world();
   void loop();

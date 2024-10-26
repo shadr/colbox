@@ -125,7 +125,7 @@ void Game::loop() {
   remove_escaped_circles(ecs);
 
   if (!ImGui::GetIO().WantCaptureMouse)
-    mouse_interaction_system(physicsId, tool, tool_radius, paint_data);
+    mouse_interaction_system(*current_tool, physicsId);
 
   now = std::chrono::steady_clock().now().time_since_epoch();
   color_system(ecs, dt);
@@ -142,11 +142,7 @@ void Game::loop() {
   Statistics stats{draw_system_time, color_system_time, physics_step_time,
                    counters};
 
-  if (tool != Tool::None) {
-    rlSetLineWidth(0.25f);
-    DrawCircleLinesV(GetMousePosition(), tool_radius, RAYWHITE);
-  }
-
+  current_tool->draw();
   ui_drawer.draw_ui(stats, dt);
 
   DrawFPS(10, 10);
