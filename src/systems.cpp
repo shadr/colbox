@@ -1,18 +1,36 @@
 #include "systems.hpp"
-#include "box2d/box2d.h"
 #include "components.hpp"
 #include "pch.hpp"
 #include "rlgl.h"
 #include "tool.hpp"
 
-void color_system(entt::registry &reg, float) {
+void color_system(entt::registry &reg, BaseTool &current_tool) {
   const auto view = reg.view<PhysicsComponent, ColorComponent>();
-  view.each([](PhysicsComponent &p, ColorComponent &c) {
-    auto vel = b2Body_GetLinearVelocity(p.id);
-    auto radians = std::atan2(vel.y, vel.x);
-    auto degrees = radians * 180.0 / std::numbers::pi;
-    c.hue = degrees;
-  });
+  if (PaintPropertyTool *paint_tool =
+          dynamic_cast<PaintPropertyTool *>(&current_tool)) {
+    b2ShapeId arr[8]{};
+    view.each([&arr, paint_tool](PhysicsComponent &p, ColorComponent &c) {
+      auto property_value = paint_tool->property;
+      if (b2Body_GetShapes(p.id, arr, 8)) {
+        auto shape_id = arr[0];
+        auto value = property_value->get_property(shape_id);
+        const static glm::vec4 min_color = glm::vec4(0.0f, 0.0f, 1.0f, 1.0f);
+        const static glm::vec4 max_color = glm::vec4(1.0f, 0.0f, 0.0f, 1.0f);
+
+        auto color = glm::mix(min_color, max_color, value) * 255.0f;
+        auto rcolor = Color(color.x, color.y, color.z, color.w);
+        auto hsv = ColorToHSV(rcolor);
+        c.hue = hsv.x;
+      }
+    });
+  } else {
+    view.each([](PhysicsComponent &p, ColorComponent &c) {
+      auto vel = b2Body_GetLinearVelocity(p.id);
+      auto radians = std::atan2(vel.y, vel.x);
+      auto degrees = radians * 180.0 / std::numbers::pi;
+      c.hue = degrees;
+    });
+  }
 }
 
 void mouse_interaction_system(BaseTool &current_tool, b2WorldId physicsId) {

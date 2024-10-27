@@ -1,6 +1,7 @@
 #ifndef TOOL_H_
 #define TOOL_H_
 
+#include "box2d/id.h"
 struct BaseTool {
   virtual void update(b2WorldId) = 0;
   virtual void ui() = 0;
@@ -27,18 +28,21 @@ struct ForceTool : ToolWithRadius {
 struct BasePaintProperty {
   virtual void ui() = 0;
   virtual void set_property(b2ShapeId) = 0;
+  virtual float get_property(b2ShapeId) = 0;
 };
 
 struct PaintFrictionProperty : BasePaintProperty {
   float value;
   void ui() override;
   void set_property(b2ShapeId) override;
+  float get_property(b2ShapeId) override;
 };
 
 struct PaintRestitutionProperty : BasePaintProperty {
   float value;
   void ui() override;
   void set_property(b2ShapeId) override;
+  float get_property(b2ShapeId) override;
 };
 
 struct PaintPropertyTool : ToolWithRadius {

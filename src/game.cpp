@@ -128,7 +128,7 @@ void Game::loop() {
     mouse_interaction_system(*current_tool, physicsId);
 
   now = std::chrono::steady_clock().now().time_since_epoch();
-  color_system(ecs, dt);
+  color_system(ecs, *current_tool);
   auto color_system_time =
       std::chrono::steady_clock().now().time_since_epoch() - now;
   now = std::chrono::steady_clock().now().time_since_epoch();

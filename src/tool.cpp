@@ -89,10 +89,18 @@ void PaintFrictionProperty::set_property(b2ShapeId shapeId) {
   b2Shape_SetFriction(shapeId, value);
 }
 
+float PaintFrictionProperty::get_property(b2ShapeId shapeId) {
+  return b2Shape_GetFriction(shapeId);
+}
+
 void PaintRestitutionProperty::ui() {
   ImGui::SliderFloat("Restitution", &value, 0.0f, 1.0f);
 }
 
 void PaintRestitutionProperty::set_property(b2ShapeId shapeId) {
   b2Shape_SetRestitution(shapeId, value);
+}
+
+float PaintRestitutionProperty::get_property(b2ShapeId shapeId) {
+  return b2Shape_GetRestitution(shapeId);
 }
