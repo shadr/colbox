@@ -31,4 +31,5 @@ struct Game {
 
   void recalulate_view_projection();
   void recreate_walls();
+  void set_current_tool(BaseTool *new_tool);
 };

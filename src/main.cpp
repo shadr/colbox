@@ -1,8 +1,6 @@
 #include "circle_renderer.hpp"
-#include "components.hpp"
 #include "game.hpp"
 #include "pch.hpp"
-#include "random_ranges.hpp"
 #include "raylib.h"
 
 #if __EMSCRIPTEN__

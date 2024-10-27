@@ -127,7 +127,6 @@ void Game::loop() {
   if (!ImGui::GetIO().WantCaptureMouse)
     mouse_interaction_system(*current_tool, physicsId);
 
-  now = std::chrono::steady_clock().now().time_since_epoch();
   color_system(ecs, *current_tool);
   auto color_system_time =
       std::chrono::steady_clock().now().time_since_epoch() - now;
@@ -147,4 +146,15 @@ void Game::loop() {
 
   DrawFPS(10, 10);
   EndDrawing();
+}
+
+void Game::set_current_tool(BaseTool *new_tool) {
+  if (ToolWithRadius *new_tool_with_radius =
+          dynamic_cast<ToolWithRadius *>(new_tool)) {
+    if (ToolWithRadius *old_tool_with_radius =
+            dynamic_cast<ToolWithRadius *>(current_tool)) {
+      new_tool_with_radius->radius = old_tool_with_radius->radius;
+    }
+  }
+  current_tool = new_tool;
 }

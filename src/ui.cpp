@@ -37,13 +37,13 @@ void Ui::draw_ui(Statistics &stats, float dt) {
   if (is_tool_changed) {
     switch (tool_index) {
     case 0:
-      game.current_tool = new NoneTool();
+      game.set_current_tool(new NoneTool());
       break;
     case 1:
-      game.current_tool = new ForceTool();
+      game.set_current_tool(new ForceTool());
       break;
     case 2:
-      game.current_tool = new PaintPropertyTool();
+      game.set_current_tool(new PaintPropertyTool());
       break;
     }
   }
